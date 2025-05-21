@@ -11,10 +11,10 @@ def rooms(request):
 
 def api_room(request, id):
     room_sensors = Sensors.objects.get(room__number = id)
-    data = {'Temperature': room_sensors.temperature,
-            'Oxygen': room_sensors.oxygen,
-            'Noise': room_sensors.noise,
-            'Peoples': room_sensors.people}
+    data = {'Temperature': float(room_sensors.temperature),
+            'Oxygen': float(room_sensors.oxygen),
+            'Noise': float(room_sensors.noise),
+            'Peoples': float(room_sensors.people)}
     return JsonResponse(data)
 
 def room(request, id):
@@ -22,12 +22,12 @@ def room(request, id):
 
 def top_violators(request):
     records = TopViolators.objects.order_by('-quantity')[:5]
-    data = {i: {record.room.number: record.quantity} for i, record in enumerate(records)}
+    data = {i: (int(record.room.number), float(record.quantity)) for i, record in enumerate(records, 1)}
     return render(request, 'top_violators.html', {'records': data})
 
 def api_violations(request):
     records = Alert.objects.order_by('-time')
-    data = {record.room.number: record.message for record in records[:3]}
+    data = {int(record.room.number): record.message for record in records[:3]}
     if len(records)>=6:
         for record in records[3:6]:
             num = record.room.number
