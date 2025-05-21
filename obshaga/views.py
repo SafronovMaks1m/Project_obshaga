@@ -32,7 +32,7 @@ def api_violations(request):
         for record in records[3:6]:
             num = record.room.number
             if num not in data:
-                data[num] = f'Комната {num}: вы не устарнили нарушние по датчику {record.sensor} со значением {record.value}'
+                data[num] = f'Комната {num}: к вам поднимается комендант. Вы не устарнили нарушние по датчику {record.sensor} со значением {record.value}'
                 break
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
