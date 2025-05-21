@@ -13,11 +13,12 @@
         }
         .container {
             max-width: 800px;
-            margin: 0 auto;
+            margin: 50px auto 20px;
             background-color: white;
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
         }
         h1 {
             text-align: center;
@@ -47,11 +48,92 @@
             font-weight: bold;
         }
         .violations-count {
-            color:rgb(9, 9, 9);
+            color: #333;
+        }
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .notification-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notification-panel {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .notification-item.unread {
+            background-color: #fff9e6;
+            font-weight: bold;
+        }
+        .notification-item:hover {
+            background-color: #f5f5f5;
         }
     </style>
 </head>
 <body>
+    <a href="/" class="back-btn">← Назад</a>
+    
+    <div class="notification-btn-container">
+        <button class="notification-btn" onclick="toggleNotifications()">
+            🔔
+            <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
+        </button>
+        <div class="notification-panel" id="notificationPanel">
+            <h3>Уведомления</h3>
+            <div id="notificationsList"></div>
+        </div>
+    </div>
+       
     <div class="container">
         <h1>Топ нарушителей</h1>
         
@@ -65,6 +147,93 @@
         </div>
     </div>
     
-    {% include 'notice.html' %}
+     {% include 'notice.html' %}
+    
+    <script>
+        let notifications = [];
+        let unreadCount = 0;
+        
+        function toggleNotifications() {
+            const panel = document.getElementById('notificationPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            
+            if (panel.style.display === 'block') {
+                // Помечаем все как прочитанные при открытии
+                unreadCount = 0;
+                updateBadge();
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.classList.remove('unread');
+                });
+            }
+        }
+        
+        function updateBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (unreadCount > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = unreadCount;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        function loadNotifications() {
+            fetch('/api_violations/')
+                .then(response => response.json())
+                .then(data => {
+                    // Добавляем новые уведомления в начало списка
+                    const newNotifications = Object.entries(data).map(([room, message]) => ({
+                        room,
+                        message,
+                        timestamp: new Date(),
+                        read: false
+                    }));
+                    
+                    notifications = [...newNotifications, ...notifications].slice(0, 10); // Храним последние 10
+                    
+                    // Обновляем список
+                    const list = document.getElementById('notificationsList');
+                    list.innerHTML = '';
+                    
+                    notifications.forEach((notif, index) => {
+                        const notification = document.createElement('div');
+                        notification.className = `notification-item ${notif.read ? '' : 'unread'}`;
+                        notification.innerHTML = `<p><strong>Комната ${notif.room}:</strong> ${notif.message}</p>`;
+                        notification.onclick = () => {
+                            notif.read = true;
+                            notification.classList.remove('unread');
+                            unreadCount--;
+                            updateBadge();
+                        };
+                        list.appendChild(notification);
+                    });
+                    
+                    // Увеличиваем счетчик непрочитанных
+                    unreadCount += newNotifications.length;
+                    updateBadge();
+                    
+                    // Показываем последнее уведомление
+                    if (newNotifications.length > 0) {
+                        showPopupNotification(newNotifications[0]);
+                    }
+                });
+        }
+        
+        function showPopupNotification(notification) {
+            const noticeContainer = document.getElementById('notice-container');
+            const noticeContent = document.getElementById('notice-content');
+            
+            noticeContent.textContent = notification.message;
+            noticeContainer.style.display = 'block';
+            
+            setTimeout(() => {
+                noticeContainer.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Загружаем уведомления сразу и каждые 11 секунд
+        loadNotifications();
+        setInterval(loadNotifications, 11000);
+    </script>
 </body>
 </html>

@@ -14,7 +14,7 @@
         .map-container {
             position: relative;
             max-width: 1000px;
-            margin: 0 auto;
+            margin: 50px auto 20px;
         }
         .map-image {
             width: 100%;
@@ -28,33 +28,223 @@
             border-radius: 5px;
             padding: 5px 10px;
             cursor: pointer;
+            text-decoration: none;
         }
-        /* Здесь нужно добавить позиционирование для каждой комнаты */
-        /* Пример для комнаты 301 */
-        .room-301 {
-            top: 20%;
-            left: 40%;
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
         }
-        /* И так далее для всех комнат... */
+        /* Стили для уведомлений */
+        .notification-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            z-index: 1000;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .notification-panel {
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 350px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+        .notification-item.unread {
+            background-color: #fff9e6;
+            font-weight: bold;
+        }
+        .notification-item:hover {
+            background-color: #f5f5f5;
+        }
+        /* Позиционирование кнопок комнат */
+        .room-301 { top: 80%; left: 88%; }
+        .room-302 { top: 71.5%; left: 88%; }
+        .room-303 { top: 68.7%; left: 75.3%; }
+        .room-304 { top: 63%; left: 88%; }
+        .room-305 { top: 60.6%; left: 74%; }
+        .room-306 { top: 54.5%; left: 88%; } 
+        .room-307 { top: 45%; left: 87%; }
+        .room-308 { top: 35.8%; left: 87%; }
+        .room-309 { top: 16%; left: 91%; }
+        .room-310 { top: 12%; left: 85.5%; }
+        .room-311 { top: 19%; left: 67.99%; }
+        .room-312 { top: 41%; left: 64.4%; }
+        .room-313 { top: 21%; left: 62.7%; }
+        .room-314 { top: 41%; left: 59%; }
+        .room-315 { top: 22%; left: 53.7%; }
+        .room-316 { top: 41%; left: 53.7%; }
+        .room-317 { top: 39%; left: 33.55%; }
+        .room-318 { top: 20%; left: 33.55%; }
+        .room-319 { top: 20%; left: 28.25%; }
+        .room-320 { top: 21%; left: 16.6%; }
+        .room-321 { top: 21%; left: 11.3%; }
+        .room-322 { top: 21%; left: 6%; }
+        .room-323 { top: 37.9%; left: 6.5%; }
+        .room-324 { top: 47%; left: 6.5%; }
+        .room-325 { top: 55.6%; left: 7.6%; }
+        .room-326 { top: 56.2%; left: 18%; }
+        .room-327 { top: 64%; left: 7.6%; }
+        .room-328 { top: 70%; left: 18%; }
     </style>
 </head>
 <body>
-  <button class="notification-btn" onclick="toggleNotifications()">🔔</button>
+    <a href="/" class="back-btn">← Назад</a>
+    
+    <button class="notification-btn" onclick="toggleNotifications()">
+        🔔
+        <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
+    </button>
     <div class="notification-panel" id="notificationPanel">
         <h3>Уведомления</h3>
         <div id="notificationsList"></div>
     </div>
-  {% include 'notice.html' %}
+    
     <div class="map-container">
         <img src="{% static 'obshaga.png' %}" alt="План общежития" class="map-image">
         
-        {% for room in rooms %}
-            <a href="/room/{{ room.number }}/" class="room-button room-{{ room.number }}">
-                {{ room.number }}
-            </a>
-        {% endfor %}
+        <!-- Кнопки комнат с 301 по 328 -->
+        <a href="/room/301/" class="room-button room-301">301</a>
+        <a href="/room/302/" class="room-button room-302">302</a>
+        <a href="/room/303/" class="room-button room-303">303</a>
+        <a href="/room/304/" class="room-button room-304">304</a>
+        <a href="/room/305/" class="room-button room-305">305</a>
+        <a href="/room/306/" class="room-button room-306">306</a>
+        <a href="/room/307/" class="room-button room-307">307</a>
+        <a href="/room/308/" class="room-button room-308">308</a>
+        <a href="/room/309/" class="room-button room-309">309</a>
+        <a href="/room/310/" class="room-button room-310">310</a>
+        <a href="/room/311/" class="room-button room-311">311</a>
+        <a href="/room/312/" class="room-button room-312">312</a>
+        <a href="/room/313/" class="room-button room-313">313</a>
+        <a href="/room/314/" class="room-button room-314">314</a>
+        <a href="/room/315/" class="room-button room-315">315</a>
+        <a href="/room/316/" class="room-button room-316">316</a>
+        <a href="/room/317/" class="room-button room-317">317</a>
+        <a href="/room/318/" class="room-button room-318">318</a>
+        <a href="/room/319/" class="room-button room-319">319</a>
+        <a href="/room/320/" class="room-button room-320">320</a>
+        <a href="/room/321/" class="room-button room-321">321</a>
+        <a href="/room/322/" class="room-button room-322">322</a>
+        <a href="/room/323/" class="room-button room-323">323</a>
+        <a href="/room/324/" class="room-button room-324">324</a>
+        <a href="/room/325/" class="room-button room-325">325</a>
+        <a href="/room/326/" class="room-button room-326">326</a>
+        <a href="/room/327/" class="room-button room-327">327</a>
+        <a href="/room/328/" class="room-button room-328">328</a>
     </div>
     
-    {% include 'notice.html' %}
+    <script>
+        let notifications = [];
+        let unreadCount = 0;
+        
+        function toggleNotifications() {
+            const panel = document.getElementById('notificationPanel');
+            panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            
+            if (panel.style.display === 'block') {
+                // Помечаем все как прочитанные при открытии
+                unreadCount = 0;
+                updateBadge();
+                document.querySelectorAll('.notification-item').forEach(item => {
+                    item.classList.remove('unread');
+                });
+            }
+        }
+        
+        function updateBadge() {
+            const badge = document.getElementById('notificationBadge');
+            if (unreadCount > 0) {
+                badge.style.display = 'flex';
+                badge.textContent = unreadCount;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        function loadNotifications() {
+            fetch('/api_violations/')
+                .then(response => response.json())
+                .then(data => {
+                    // Добавляем новые уведомления в начало списка
+                    const newNotifications = Object.entries(data).map(([room, message]) => ({
+                        room,
+                        message,
+                        timestamp: new Date(),
+                        read: false
+                    }));
+                    
+                    notifications = [...newNotifications, ...notifications].slice(0, 10); // Храним последние 10
+                    
+                    // Обновляем список
+                    const list = document.getElementById('notificationsList');
+                    list.innerHTML = '';
+                    
+                    notifications.forEach((notif, index) => {
+                        const notification = document.createElement('div');
+                        notification.className = `notification-item ${notif.read ? '' : 'unread'}`;
+                        notification.innerHTML = `<p><strong>Комната ${notif.room}:</strong> ${notif.message}</p>`;
+                        notification.onclick = () => {
+                            notif.read = true;
+                            notification.classList.remove('unread');
+                            unreadCount--;
+                            updateBadge();
+                        };
+                        list.appendChild(notification);
+                    });
+                    
+                    // Увеличиваем счетчик непрочитанных
+                    unreadCount += newNotifications.length;
+                    updateBadge();
+                });
+        }
+        
+        // Загружаем уведомления сразу и каждые 20 секунд
+        loadNotifications();
+        setInterval(loadNotifications, 20000);
+    </script>
 </body>
 </html>
