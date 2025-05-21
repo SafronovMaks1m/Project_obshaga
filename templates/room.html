@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Комната {{ id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .sensor {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .sensor h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+        .sensor-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .normal {
+            color: #4CAF50;
+        }
+        .warning {
+            color: #ff9800;
+        }
+        .danger {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Комната {{ id }}</h1>
+        
+        <div class="sensor">
+            <h3>Температура</h3>
+            <div class="sensor-value" id="temperature">Загрузка...</div>
+            <p>Норма: 21-32°C</p>
+        </div>
+        
+        <div class="sensor">
+            <h3>Кислород</h3>
+            <div class="sensor-value" id="oxygen">Загрузка...</div>
+            <p>Норма: 18-24%</p>
+        </div>
+        
+        <div class="sensor">
+            <h3>Шум</h3>
+            <div class="sensor-value" id="noise">Загрузка...</div>
+            <p>Норма: 0-69 дБ</p>
+        </div>
+        
+        <div class="sensor">
+            <h3>Количество людей</h3>
+            <div class="sensor-value" id="people">Загрузка...</div>
+            <p>Норма: 0-6 человек</p>
+        </div>
+    </div>
+    
+    {% include 'notice.html' %}
+    
+    <script>
+        function updateSensorData() {
+            fetch(`/room/${ {{ id }} }/api/`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('temperature').textContent = data.Temperature + '°C';
+                    document.getElementById('oxygen').textContent = data.Oxygen + '%';
+                    document.getElementById('noise').textContent = data.Noise + ' дБ';
+                    document.getElementById('people').textContent = data.Peoples;
+                    
+                    // Проверка на нормальные значения и изменение цвета
+                    checkValue('temperature', data.Temperature, 21, 32);
+                    checkValue('oxygen', data.Oxygen, 18, 24);
+                    checkValue('noise', data.Noise, 0, 69);
+                    checkValue('people', data.Peoples, 0, 6);
+                });
+        }
+        
+        function checkValue(elementId, value, min, max) {
+            const element = document.getElementById(elementId);
+            element.className = 'sensor-value';
+            
+            if (value < min || value > max) {
+                element.classList.add('danger');
+            } else if (value < min * 1.1 || value > max * 0.9) {
+                element.classList.add('warning');
+            } else {
+                element.classList.add('normal');
+            }
+        }
+        
+        // Обновляем данные сразу и каждые 11 секунд
+        updateSensorData();
+        setInterval(updateSensorData, 11000);
+    </script>
+</body>
+</html>

@@ -1,13 +1,60 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Заголовок страницы</title>
-    <link rel="stylesheet">
-  </head>
-  <body>
-    <img src={%static 'obshaga.png'%} alt="Фото">
-  </body>
+    <title>Карта общежития</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .map-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .map-image {
+            width: 100%;
+            height: auto;
+        }
+        .room-button {
+            position: absolute;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        /* Здесь нужно добавить позиционирование для каждой комнаты */
+        /* Пример для комнаты 301 */
+        .room-301 {
+            top: 20%;
+            left: 40%;
+        }
+        /* И так далее для всех комнат... */
+    </style>
+</head>
+<body>
+  <button class="notification-btn" onclick="toggleNotifications()">🔔</button>
+    <div class="notification-panel" id="notificationPanel">
+        <h3>Уведомления</h3>
+        <div id="notificationsList"></div>
+    </div>
+  {% include 'notice.html' %}
+    <div class="map-container">
+        <img src="{% static 'obshaga.png' %}" alt="План общежития" class="map-image">
+        
+        {% for room in rooms %}
+            <a href="/room/{{ room.number }}/" class="room-button room-{{ room.number }}">
+                {{ room.number }}
+            </a>
+        {% endfor %}
+    </div>
+    
+    {% include 'notice.html' %}
+</body>
 </html>

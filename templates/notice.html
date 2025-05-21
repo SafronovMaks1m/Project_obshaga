@@ -1,0 +1,30 @@
+<div id="notice-container" style="display: none; position: fixed; bottom: 20px; right: 20px; background-color: #ff9800; color: white; padding: 15px; border-radius: 8px; max-width: 300px; box-shadow: 0 0 10px rgba(0,0,0,0.2);">
+    <h3 style="margin-top: 0;">Новое уведомление</h3>
+    <div id="notice-content"></div>
+</div>
+
+<script>
+    function checkForNewNotifications() {
+        fetch('/api_violations/')
+            .then(response => response.json())
+            .then(data => {
+                const noticeContainer = document.getElementById('notice-container');
+                const noticeContent = document.getElementById('notice-content');
+                
+                // Показываем только первое уведомление
+                const firstNotification = Object.entries(data)[0];
+                if (firstNotification) {
+                    noticeContent.textContent = firstNotification[1];
+                    noticeContainer.style.display = 'block';
+                    
+                    // Автоматически скрываем через 5 секунд
+                    setTimeout(() => {
+                        noticeContainer.style.display = 'none';
+                    }, 5000);
+                }
+            });
+    }
+    
+    // Проверяем уведомления каждые 11 секунд
+    setInterval(checkForNewNotifications, 11000);
+</script>
