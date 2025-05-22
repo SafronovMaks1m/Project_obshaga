@@ -1,12 +1,11 @@
 from django.apps import AppConfig
-import sys
-import os
 
 class ObshagaConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'obshaga'
 
     def ready(self):
-        if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') == 'true':
+        from django.conf import settings
+        if settings.SCHEDULER_SHOULD_RUN:
             from .scheduler import start_scheduler_job
             start_scheduler_job()

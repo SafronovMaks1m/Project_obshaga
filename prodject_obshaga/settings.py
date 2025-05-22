@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-yadna%3&eln%f1^^cl32f@7svx%j5f7ijb0$(xm=p08ux%2+@s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['project-obshaga.onrender.com']
+ALLOWED_HOSTS = ['project_obshaga.onrender.com']
 
 
 # Application definition
@@ -125,3 +125,5 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SCHEDULER_SHOULD_RUN = os.environ.get("RUN_SCHEDULER", "") == "1"
