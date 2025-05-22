@@ -30,6 +30,7 @@ class Alert(models.Model):
     sensor = models.CharField(max_length=11)
     value = models.FloatField()
     message = models.TextField()
+    new = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['time']

@@ -129,27 +129,30 @@
             <div id="notificationsList"></div>
         </div>
     </div>
-    
+
     {% include 'notice.html' %}
-    
+
     <script>
-        let notifications = [];
-        let unreadCount = 0;
-        
+        let notifications = JSON.parse(localStorage.getItem('notifications')) || [];
+        let unreadCount = parseInt(localStorage.getItem('unreadCount')) || 0;
+        let lastAlertTime = null;
+
         function toggleNotifications() {
             const panel = document.getElementById('notificationPanel');
             panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-            
+
             if (panel.style.display === 'block') {
-                // Помечаем все как прочитанные при открытии
                 unreadCount = 0;
                 updateBadge();
+                localStorage.setItem('unreadCount', '0');
                 document.querySelectorAll('.notification-item').forEach(item => {
                     item.classList.remove('unread');
                 });
+
+                fetch('/api_violations/mark_read');
             }
         }
-        
+
         function updateBadge() {
             const badge = document.getElementById('notificationBadge');
             if (unreadCount > 0) {
@@ -159,64 +162,72 @@
                 badge.style.display = 'none';
             }
         }
-        
-        function loadNotifications() {
-            fetch('/api_violations/')
-                .then(response => response.json())
-                .then(data => {
-                    // Добавляем новые уведомления в начало списка
-                    const newNotifications = Object.entries(data).map(([room, message]) => ({
-                        room,
-                        message,
-                        timestamp: new Date(),
-                        read: false
-                    }));
-                    
-                    notifications = [...newNotifications, ...notifications].slice(0, 10); // Храним последние 10
-                    
-                    // Обновляем список
-                    const list = document.getElementById('notificationsList');
-                    list.innerHTML = '';
-                    
-                    notifications.forEach((notif, index) => {
-                        const notification = document.createElement('div');
-                        notification.className = `notification-item ${notif.read ? '' : 'unread'}`;
-                        notification.innerHTML = `<p><strong>Комната ${notif.room}:</strong> ${notif.message}</p>`;
-                        notification.onclick = () => {
-                            notif.read = true;
-                            notification.classList.remove('unread');
-                            unreadCount--;
-                            updateBadge();
-                        };
-                        list.appendChild(notification);
-                    });
-                    
-                    // Увеличиваем счетчик непрочитанных
-                    unreadCount += newNotifications.length;
-                    updateBadge();
-                    
-                    // Показываем последнее уведомление
-                    if (newNotifications.length > 0) {
-                        showPopupNotification(newNotifications[0]);
+
+        function renderNotification(room, message, unread = true) {
+            const list = document.getElementById('notificationsList');
+            const item = document.createElement('div');
+            item.className = 'notification-item' + (unread ? ' unread' : '');
+            item.innerHTML = `<strong>${room}</strong>: ${message}`;
+            list.prepend(item);
+        }
+
+        function displayAllStoredNotifications() {
+            document.getElementById('notificationsList').innerHTML = '';
+            for (const n of notifications) {
+                renderNotification(n.room, n.message, n.unread);
+            }
+            updateBadge();
+        }
+
+        async function loadNotifications() {
+            const startRequestTime = Date.now();
+
+            const response = await fetch('/api_violations/');
+            const data = await response.json();
+
+            const newFlag = data.new;
+            const serverLastTime = new Date(data.last_alert_time).getTime();
+
+            console.log('Дата от сервера (data.last_alert_time):', data.last_alert_time);
+            console.log('Дата от сервера (data.last_alert_time):', serverLastTime);
+
+            delete data.new;
+            delete data.last_alert_time;
+
+            if (newFlag) {
+                for (const [roomKey, message] of Object.entries(data)) {
+                    if (roomKey === 'new' || roomKey === 'last_alert_time') continue;
+
+                    const room = String(roomKey);
+                    if (!notifications.some(n => n.room === room && n.message === message)) {
+                        notifications.push({ room, message, unread: true });
+                        renderNotification(room, message, true);
+                        unreadCount++;
                     }
-                });
+                }
+                notifications = notifications.slice(-50);
+                localStorage.setItem('notifications', JSON.stringify(notifications));
+                localStorage.setItem('unreadCount', unreadCount);
+                updateBadge();
+            }
+
+            {% comment %} if (isNaN(serverLastTime)) {
+                console.warn('Некорректная дата от сервера:', data.last_alert_time);
+                setTimeout(loadNotifications, 5000);
+                return;
+            } {% endcomment %}
+            lastAlertTime = serverLastTime;
+            const timeToNextCheck = lastAlertTime + 11500 - Date.now();
+            console.log('Время', timeToNextCheck);
+            setTimeout(loadNotifications, timeToNextCheck);
         }
-        
-        function showPopupNotification(notification) {
-            const noticeContainer = document.getElementById('notice-container');
-            const noticeContent = document.getElementById('notice-content');
-            
-            noticeContent.textContent = notification.message;
-            noticeContainer.style.display = 'block';
-            
-            setTimeout(() => {
-                noticeContainer.style.display = 'none';
-            }, 5000);
-        }
-        
-        // Загружаем уведомления сразу и каждые 11 секунд
-        loadNotifications();
-        setInterval(loadNotifications, 11000);
+
+        window.addEventListener('load', () => {
+            displayAllStoredNotifications();
+            loadNotifications();
+        });
     </script>
+
+
 </body>
 </html>

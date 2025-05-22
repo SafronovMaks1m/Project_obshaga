@@ -13,5 +13,6 @@ urlpatterns = [
     path('rooms/', views.rooms, name='rooms'),
     path('room/<int:id>/', include(urlroom)),
     path('top_violators/', views.top_violators, name='top'),
-    path('api_violations/', views.api_violations, name='alers')
+    path('api_violations/', views.api_violations, name='alerts'),
+    path('api_violations/mark_read', views.api_violations_mark_read, name='alerts_mark')
 ]

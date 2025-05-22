@@ -3,29 +3,50 @@
     <div id="notice-content"></div>
 </div>
 
-
 <script>
-    function checkForNewNotifications() {
-        fetch('/api_violations/')
-            .then(response => response.json())
-            .then(data => {
-                const noticeContainer = document.getElementById('notice-container');
-                const noticeContent = document.getElementById('notice-content');
-                
-                // Показываем только первое уведомление
-                const firstNotification = Object.entries(data)[0];
-                if (firstNotification) {
-                    noticeContent.textContent = firstNotification[1];
-                    noticeContainer.style.display = 'block';
-                    
-                    // Автоматически скрываем через 5 секунд
-                    setTimeout(() => {
-                        noticeContainer.style.display = 'none';
-                    }, 5000);
+    let lastNoticeTime = parseInt(localStorage.getItem('lastNoticeTime')) || null;
+
+    async function checkForNotice() {
+        try {
+            const response = await fetch('/api_violations/');
+            const data = await response.json();
+
+            const newFlag = data.new;
+            const serverLastTime = new Date(data.last_alert_time).getTime();
+
+            delete data.new;
+            delete data.last_alert_time;
+
+            if (newFlag && serverLastTime !== lastNoticeTime) {
+                const entries = Object.entries(data);
+                let room, message;
+                if (entries.length > 0) {
+                    [room, message] = entries[entries.length - 1];
                 }
-            });
+
+                if (room && message) {
+                    document.getElementById('notice-content').textContent = `${room}: ${message}`;
+                    document.getElementById('notice-container').style.display = 'block';
+
+                    setTimeout(() => {
+                        document.getElementById('notice-container').style.display = 'none';
+                    }, 3000);
+
+                    lastNoticeTime = serverLastTime;
+                    localStorage.setItem('lastNoticeTime', serverLastTime);
+                }
+            }
+
+            const timeToNextCheck = serverLastTime + 11300 - Date.now();
+            setTimeout(checkForNotice, timeToNextCheck);
+
+        } catch (error) {
+            console.error('Ошибка при получении уведомлений:', error);
+            setTimeout(checkForNotice, 10000);
+        }
     }
-    
-    // Проверяем уведомления каждые 11 секунд
-    setInterval(checkForNewNotifications, 11000);
+
+    window.addEventListener('load', () => {
+        checkForNotice();
+    });
 </script>

@@ -26,14 +26,25 @@ def top_violators(request):
     return render(request, 'top_violators.html', {'records': data})
 
 def api_violations(request):
-    records = Alert.objects.order_by('-time')
-    data = {int(record.room.number): record.message for record in records[:3]}
-    if len(records)>=6:
-        for record in records[3:6]:
-            num = record.room.number
-            if num not in data:
-                data[num] = f'Комната {num}: к вам поднимается комендант. Вы не устарнили нарушние по датчику {record.sensor} со значением {record.value}'
-                break
+    records = Alert.objects.filter(new=True)
+    data = {int(record.room.number): record.message for record in records}
+    if records.exists():
+        data['new'] = True
+        record = records.last()
+        if len(records) == 3:
+            records_old = Alert.objects.filter(new = False)
+            if len(records_old) > 0:
+                record = Alert.objects.filter(new = False).last()
+        else:
+            if (len(records)>=6):
+                record = records.order_by('-time')[5]
+        num = record.room.number
+        data[num] = f'Комната {num}: к вам поднимается комендант. Вы не устарнили нарушние по датчику {record.sensor} со значением {record.value}'
+    else:
+        data['new'] = False
+    data['last_alert_time'] = Alert.objects.order_by('-time').first().time.isoformat()
     return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
 
-
+def api_violations_mark_read(request):
+    Alert.objects.filter(new=True).update(new=False)
+    return JsonResponse({'status': 'ok'})
