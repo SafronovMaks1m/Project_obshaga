@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-yadna%3&eln%f1^^cl32f@7svx%j5f7ijb0$(xm=p08ux%2+@s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['project-obshaga.onrender.com']
+ALLOWED_HOSTS = []
 
 
 # Application definition
